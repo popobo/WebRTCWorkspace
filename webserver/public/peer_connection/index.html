@@ -1,0 +1,30 @@
+<html>
+    <head>
+        <title>
+            WebRTC Peer Connection
+        </title>
+    </head>
+    <body>
+        <div>
+            <div>
+                <h2>Local:</h2>
+                <video id="localvideo" autoplay playsinline></video>
+                <h2>Offer SDP</h2>
+                <textarea id="offer"></textarea>
+            </div>
+            <div>
+                <h2>Remote:</h2>
+                <video id="remotevideo" autoplay playsinline></video>
+                <h2>Answer SDP</h2>
+                <textarea id="answer"></textarea>
+            </div>
+            <div>
+                <button id="start">Start</button>
+                <button id="call">Call</button>
+                <button id="hangup">Hang Up</button>
+            </div>
+        </div>
+    </body>
+    <script src="https://webrtc.github.io/adapter/adapter.js"></script>
+    <script src="./js/main.js"></script>
+</html>
