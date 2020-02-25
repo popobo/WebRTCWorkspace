@@ -14,6 +14,8 @@ var socketIo = require("socket.io");
 
 var log4js = require("log4js");
 
+var USERCOUNT = 3;
+
 log4js.configure({
     appenders:{
         file:{
@@ -54,7 +56,6 @@ var io = socketIo.listen(https_server);
 io.sockets.on("connection", (socket)=>{
     socket.on("message", (room, data)=>{
         socket.to(room).emit("message", room, socket.id, data);
-        logger.info(room + ":" + socket.id + ":" + data);
     });
 
     socket.on("join", (room)=>{
@@ -63,8 +64,18 @@ io.sockets.on("connection", (socket)=>{
         //房间里用户数量
         var users = Object.keys(myRoom.sockets).length;
         logger.info("the number of user in room is:" + users);
+        if(users < USERCOUNT){
+            socket.emit("joined", room, socket.id);//发送给加入的用户
+            if(users > 1){
+                socket.to(room).emit("otherjoin", room);
+            }
+        }
+        else{
+            socket.leave(room);
+            socket.emit("full", room, socket.id);//给连接端发送full
+        }
         //给连接对端发消息
-        socket.emit("joined", room, socket.id);
+        //socket.emit("joined", room, socket.id);
         //给该房间除了自己所有用户发消息
         //socket.to(room).emit("joined", room, socket.id); 
         //给该房间所有用户发消息
@@ -76,9 +87,10 @@ io.sockets.on("connection", (socket)=>{
         var myRoom = io.sockets.adapter.rooms[room];
         //房间里用户数量
         var users = Object.keys(myRoom.sockets).length;
+        logger.info("the number of user in room is:" + users);
         //user-1
-        //给连接对端发消息
-        socket.emit("left", room, socket.id);
+        socket.to(room).emit("bye", room, socket.id);//给房间内其他人发
+        socket.emit("leaved", room, socket.id);//给连接对端发消息
         //给该房间除了自己所有用户发消息
         //socket.to(room).emit("left", room, socket.id); 
         //给该房间所有用户发消息
