@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title>really peer connection</title>
+        <link rel="stylesheet" href="./css/main.css">
+        <script language="javascript" type="text/javascript">
+            function goto_next_page(){
+                var roomId = document.querySelector("input#room");
+                if(roomId.value == null || roomId.value == ''){
+                    alert("Room is null");
+                }else{
+                    window.location.href = "room.html?room" + roomId.value;
+                }
+            }
+        </script>
+    </head>
+    <body>
+        <table align="center">
+            <tr><td><div>
+                <label>roomId:</label>
+                <input type="input" id="room">
+            </div></td></tr>
+            <tr><td><div>
+                <button id="join" onclick="goto_next_page()">Join</button>
+            </div></td></tr>
+        </table>
+    </body>
+</html>

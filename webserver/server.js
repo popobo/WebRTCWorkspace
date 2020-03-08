@@ -54,9 +54,12 @@ var https_server = https.createServer(options, app);
 var io = socketIo.listen(https_server);
 //connection
 io.sockets.on("connection", (socket)=>{
-    socket.on("message", (room, data)=>{
-        socket.to(room).emit("message", room, socket.id, data);
-    });
+    // socket.on("message", (room, data)=>{
+    //     socket.to(room).emit("message", room, socket.id, data);
+    // });
+    socket.on('message', (room, data)=>{
+		socket.to(room).emit('message', room, data);
+	});
 
     socket.on("join", (room)=>{
         socket.join(room);
@@ -86,8 +89,9 @@ io.sockets.on("connection", (socket)=>{
         socket.join(room);
         var myRoom = io.sockets.adapter.rooms[room];
         //房间里用户数量
-        var users = Object.keys(myRoom.sockets).length;
-        logger.info("the number of user in room is:" + users);
+        // var users = Object.keys(myRoom.sockets).length;
+        var users = (myRoom)?Object.keys(myRoom.sockets.length):0;
+        logger.info("the number of user in room is:" + (users - 1));
         //user-1
         socket.to(room).emit("bye", room, socket.id);//给房间内其他人发
         socket.emit("leaved", room, socket.id);//给连接对端发消息
