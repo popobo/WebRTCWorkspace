@@ -12,6 +12,10 @@ var shareDeskBox = document.querySelector("input#shareDesk");
 
 var selBw = document.querySelector("select#bandwidth");
 
+var chat = document.querySelector("textarea#chat");
+var sendText = document.querySelector("textarea#sendText");
+var btnSend = document.querySelector("button#send");
+
 var pcConfig = {
     "iceServers": [{
         "urls": "turn:bocode.xyz:3478",
@@ -23,6 +27,7 @@ var pcConfig = {
 var localStream = null;
 var remoteStream = null;
 var pc = null;
+var dc = null;
 var roomId;
 var socket = null;
 var offerDesc = null;
@@ -172,6 +177,26 @@ function bind_tracks() {
     });
 }
 
+function receive_msg(e){
+    var msg = e.data;
+    if(msg){
+        chat.value += "->" + msg + "\r\n";
+    }else{
+        console.error("received msg is null");
+    }
+}
+
+function data_channel_state_change(){
+    var readyState = dc.readyState;
+    if("open" == readyState){
+        sendText.disabled = false;
+        btnSend.disabled = false;
+    }else{
+        sendText.disabled = true;
+        btnSend.disabled = true;
+    }
+}
+
 function conn() {
     socket = io.connect();
     socket.on("joined", (roomId, id) => {
@@ -193,10 +218,17 @@ function conn() {
             create_peer_connection();
             bind_tracks();
         }
+        
+        //dataChannel的创建必须在call()之前
+        dc = pc.createDataChannel("chat");
+        dc.onmessage = receive_msg;
+        dc.onopen = data_channel_state_change;
+        dc.onclose = data_channel_state_change;
+        console.log("receive otherjoin message:state=", state);
+        
         state = "joined_conn";
         //媒体协商
         call();
-        console.log("receive otherjoin message:state=", state);
     });
 
     socket.on("full", (roomId, id) => {
@@ -415,6 +447,15 @@ function create_peer_connection() {
                 console.log("this is the end candidate");
             }
         };
+        
+        pc.ondatachannel = (e)=>{
+            if(!dc){
+                dc = e.channel;
+                dc.onmessage = receive_msg;
+                dc.onopen = data_channel_state_change;
+                dc.onclose = data_channel_state_change;
+            }
+        };
 
         pc.ontrack = get_remote_stream;
     } else {
@@ -500,6 +541,16 @@ window.setInterval(()=>{
     });
 }, 1000);
 
+function send_text(){
+    var data = sendText.value;
+    if(data){
+        dc.send(data);
+    }
+    sendText.value = '';
+    chat.value += "<-" + data + "\r\n";
+}
+
 btnConnect.onclick = conn_signal_server;
 btnLeave.onclick = leave;
 selBw.onchange = change_bw;
+btnSend.onclick = send_text;
